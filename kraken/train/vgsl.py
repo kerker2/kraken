@@ -495,6 +495,8 @@ class VGSLRecognitionModel(KrakenTrainerModule):
             self._val_codec = self.net.codec.add_labels(val_diff)
             val_set.encode(self._val_codec)
 
+            if len(train_set) > 0:
+                train_set[0]
             if self.net.one_channel_mode and train_set.im_mode != self.net.one_channel_mode:
                 if self.net.one_channel_mode == '1':
                     _advice = 'Consider binarizing your training data.'
