@@ -57,6 +57,7 @@ class KrakenTrainerModule(L.LightningModule):
         self._save_checkpoint_extras(checkpoint)
         checkpoint['_module_config'] = self.hparams.config
         self._append_validation_metrics(checkpoint)
+        checkpoint['_user_metadata'] = self.net.user_metadata
 
     def _save_checkpoint_extras(self, checkpoint: dict) -> None:
         """Hook to write task-specific keys/state to the checkpoint."""
@@ -68,6 +69,9 @@ class KrakenTrainerModule(L.LightningModule):
                    if k.startswith('val_')}
         if metrics:
             self.net.user_metadata.setdefault('metrics', []).append((self.current_epoch, metrics))
+            accuracy = metrics.get('val_accuracy')
+            if accuracy is not None:
+                self.net.user_metadata.setdefault('accuracy', []).append((self.current_epoch, accuracy))
 
     def on_load_checkpoint(self, checkpoint: dict) -> None:
         config = checkpoint.get('_module_config')
@@ -76,6 +80,8 @@ class KrakenTrainerModule(L.LightningModule):
         if not isinstance(config, self._config_class):
             raise ValueError(f'Checkpoint is not a {self._task} model.')
         self.net = self._build_net_from_checkpoint(checkpoint)
+        if '_user_metadata' in checkpoint:
+            self.net.user_metadata.update(checkpoint['_user_metadata'])
         self._post_load_checkpoint(checkpoint)
 
     def _build_net_from_checkpoint(self, checkpoint: dict) -> 'Module':
