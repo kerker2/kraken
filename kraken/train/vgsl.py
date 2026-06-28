@@ -496,8 +496,12 @@ class VGSLRecognitionModel(KrakenTrainerModule):
             val_set.encode(self._val_codec)
 
             if self.net.one_channel_mode and train_set.im_mode != self.net.one_channel_mode:
+                if self.net.one_channel_mode == '1':
+                    _advice = 'Consider binarizing your training data.'
+                else:
+                    _advice = f'Consider using mode {self.net.one_channel_mode} images in your training set.'
                 logger.warning(f'Neural network has been trained on mode {self.net.one_channel_mode} images, '
-                               f'training set contains mode {train_set.im_mode} data. Consider binarizing your data.')
+                               f'training set contains mode {train_set.im_mode} data. {_advice}')
 
             self.net.user_metadata['metrics'] = []
             self.net.model_type = ['recognition']
